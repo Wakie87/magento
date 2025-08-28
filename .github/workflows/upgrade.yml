@@ -1,0 +1,54 @@
+name: Upgrade all to the latest version
+
+on:
+  workflow_dispatch:
+
+env:
+  PHP_VERSION: 8.4
+
+jobs:
+  update-magento:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 #v4.2.2
+        with:
+          ref: main
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@0f7f1d08e3e32076e51cae65eb0b0c871405b16e #v2.34.1
+        with:
+          php-version: '${{ env.PHP_VERSION }}'
+
+      - name: Upgrade all
+        env:
+          COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+        run: |
+          MAGENTO_LATEST=$(curl -s https://api.github.com/repos/magento/magento2/tags 2>&1 | grep -m1 -oP '(?<=name": ")[0-9].*-p.*(?=")')
+          echo "MAGENTO LATEST VERSION ${MAGENTO_LATEST}"
+          echo MAGENTO_VERSION=${MAGENTO_LATEST} >> ${GITHUB_ENV}
+          composer update -W
+          composer require-commerce magento/product-community-edition=${MAGENTO_LATEST} --no-update
+          composer update -W
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Create PR and review changes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="upgrade-magento-${MAGENTO_VERSION}-$(date +%s)"
+          git checkout -b "${BRANCH}"
+
+          git add .
+          git commit -m "Upgrade to ${MAGENTO_VERSION} with PHP ${PHP_VERSION}"
+          git push origin "${BRANCH}"
+
+          gh pr create --title "feat!(upgrade): Upgrade all with ${MAGENTO_VERSION} with PHP ${PHP_VERSION}" \
+          --body "Auto upgrade all with ${MAGENTO_VERSION} with PHP ${PHP_VERSION}" \
+          --base main \
+          --head "${BRANCH}"

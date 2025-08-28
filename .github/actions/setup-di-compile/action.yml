@@ -1,0 +1,111 @@
+name: "Magento 2 code installation and compilation test"
+author: "MagenX"
+description: "Check if composer installation with setup-di-compile works without errors"
+
+inputs:
+  composer_auth:
+    description: 'Composer auth'
+    required: false
+    default: ''
+  composer_install:
+    description: 'Enable composer installation with options'
+    required: false
+    default: ''
+  setup_di_compile:
+    description: 'Enable Magento di compile with options'
+    required: false
+    default: ''
+  composer_autoload:
+    description: 'Enable composer autoload with options'
+    required: false
+    default: ''
+  static_content_deploy:
+    description: 'Enable Magento static content deploy with options'
+    required: false
+    default: ''
+  hyva_theme_path:
+    description: 'Enable HyvaTheme css generation with path to theme'
+    required: false
+    default: ''
+  debug_command:
+    description: 'Additional Magento command to debug'
+    required: false
+    default: ''
+
+outputs:
+  composer_install:
+    description: "The status of composer install step"
+    value: ${{ steps.status.outputs.composer_install }}
+  setup_di_compile:
+    description: "The status of compilation step"
+    value: ${{ steps.status.outputs.setup_di_compile }}
+  composer_autoload:
+    description: "The status of composer autoload step"
+    value: ${{ steps.status.outputs.composer_autoload }}
+  hyva_theme:
+    description: "The status of hyva theme generation step"
+    value: ${{ steps.status.outputs.hyva_theme }}
+  static_content_deploy:
+    description: "The status of static content deploy step"
+    value: ${{ steps.status.outputs.static_content_deploy }}
+  debug:
+    description: "The status of debug step"
+    value: ${{ steps.status.outputs.debug }}
+  
+runs:
+  using: "composite"
+  steps:
+    - name: Composer install modules and updates
+      id: composer-install
+      if: ${{ inputs.composer_install != '' }}
+      env:
+        COMPOSER_AUTH: ${{ inputs.composer_auth }}
+      shell: bash
+      run: |
+        composer install ${{ inputs.composer_install }}
+
+    - name: Run setup di compile
+      id: setup-di-compile
+      shell: bash
+      run: |
+        bin/magento setup:di:compile ${{ inputs.setup_di_compile }}
+
+    - name: Composer classmap optimization
+      id: composer-autoload
+      if: ${{ inputs.composer_autoload != '' }}
+      shell: bash
+      run: |
+        composer dump-autoload ${{ inputs.composer_autoload }}
+
+    - name: Generate Hyva Theme css
+      id: hyva-theme
+      if: ${{ inputs.hyva_theme_path != '' }}
+      shell: bash
+      run: |
+        npm --prefix ${{ inputs.hyva_theme_path }} run build-prod
+
+    - name: Generate static files
+      id: static-content-deploy
+      if: ${{ inputs.static_content_deploy != '' }}
+      shell: bash
+      run: |
+        bin/magento setup:static-content:deploy ${{ inputs.static_content_deploy }}
+
+    - name: Debug with custom output
+      id: debug
+      if: ${{ inputs.debug_command != '' }}
+      shell: bash
+      run: |
+        ${{ inputs.debug_command }}
+
+    - name: Status output for steps
+      id: status
+      if: ${{ !cancelled() }}
+      shell: bash
+      run: |
+        echo "composer_install=${{ steps.composer-install.outcome }}" >> $GITHUB_OUTPUT
+        echo "setup_di_compile=${{ steps.setup-di-compile.outcome }}" >> $GITHUB_OUTPUT
+        echo "composer_autoload=${{ steps.composer-autoload.outcome }}" >> $GITHUB_OUTPUT
+        echo "hyva_theme=${{ steps.hyva-theme.outcome }}" >> $GITHUB_OUTPUT
+        echo "static_content_deploy=${{ steps.static-content-deploy.outcome }}" >> $GITHUB_OUTPUT
+        echo "debug=${{ steps.debug.outcome }}" >> $GITHUB_OUTPUT

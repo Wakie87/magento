@@ -1,0 +1,36 @@
+name: "PageSpeed Insights"
+description: "Run Google PageSpeed Insights"
+inputs:
+  url:
+    description: "URL to analyze"
+    required: true
+    default: "https://www.hyva.io"
+  psi_key:
+    description: "GPSI API Key"
+    required: true
+    default: ""
+  crux_key:
+    description: "CRUX API Key"
+    required: true
+    default: ""
+  strategy:
+    description: "Strategy (mobile or desktop)"
+    required: false
+    default: "mobile"
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Node.js
+      id: node
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 #v4.4.0
+      with:
+        node-version: "22"
+    - name: Install dependencies
+      id: npm-install
+      shell: bash
+      run: npm install @googleapis/pagespeedonline@latest
+    - name: Run PageSpeed Insights
+      id: psi
+      shell: bash
+      run: |
+        node ${{ github.action_path }}/psi.js "${{ inputs.url }}" "${{ inputs.strategy }}" "${{ inputs.psi_key }}" "${{ inputs.crux_key }}"

@@ -1,0 +1,95 @@
+actions:
+- changed-files:
+  - any-glob-to-any-file:
+    - '.github/workflows/**'
+    - '.github/actions/**'
+
+'release-please: config':
+- changed-files:
+  - any-glob-to-any-file:
+    - '.github/release/*.json'
+
+git:
+- changed-files:
+  - any-glob-to-any-file:
+    - '.editorconfig'
+    - '.gitignore'
+
+module:
+- changed-files:
+  - any-glob-to-any-file: 
+    - 'app/code/**'
+    - 'composer.json'
+    - 'composer.lock'
+
+composer:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'composer.json'
+    - 'composer.lock'
+
+'custom theme':
+- all:
+  - changed-files:
+    - any-glob-to-any-file: 'app/design/frontend/**/*'
+    - all-globs-to-all-files: '!app/design/frontend/Magento/**'
+
+'theme: magento admin':
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/design/adminhtml/Magento/**'
+
+'theme: magento frontend':
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/design/frontend/Magento/**'
+
+javascript:
+- changed-files:
+  - any-glob-to-any-file: '**/*.js'
+
+css:
+- changed-files:
+  - any-glob-to-any-file: '**/*.css'
+
+less:
+- changed-files:
+  - any-glob-to-any-file: '**/*.less'
+
+xml:
+- changed-files:
+  - any-glob-to-any-file: '**/*.xml'
+
+csv:
+- changed-files:
+  - any-glob-to-any-file: '**/*.csv'
+
+json:
+- changed-files:
+  - any-glob-to-any-file: '**/*.json'
+
+phtml:
+- changed-files:
+  - any-glob-to-any-file: '**/*.phtml'
+
+php:
+- changed-files:
+  - any-glob-to-any-file: '**/*.php'
+
+config.php:
+- changed-files:
+  - any-glob-to-any-file: 'app/etc/config.php'
+
+env.php:
+- changed-files:
+  - any-glob-to-any-file: 'app/etc/env.php'
+
+di.xml:
+- changed-files:
+  - any-glob-to-any-file: 'app/etc/di.xml'
+  
+developer:
+ - base-branch: 'main'
+
+release:
+ - base-branch: 'release'
